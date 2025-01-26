@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+    <form id="registrationForm">
+        <h2>Registration Form</h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="attachments">Attachments (optional):</label>
+        <div class="dropzone" id="fileUpload"></div><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        let uploadedFiles = [];
+
+        Dropzone.options.fileUpload = {
+            url: "upload.php", // Temp upload handler
+            maxFiles: 5,
+            addRemoveLinks: true,
+            success: function (file, response) {
+                uploadedFiles.push(response.filePath);
+            },
+            removedfile: function (file) {
+                $.post("remove_upload.php", { filePath: file.upload.filename });
+                uploadedFiles = uploadedFiles.filter(f => f !== file.upload.filename);
+                file.previewElement.remove();
+            }
+        };
+
+        $("#registrationForm").on("submit", function (e) {
+            e.preventDefault();
+            const formData = {
+                name: $("#name").val(),
+                email: $("#email").val(),
+                attachments: uploadedFiles
+            };
+
+            $.post("submit.php", formData, function (response) {
+                alert(response.message);
+                if (response.success) {
+                    window.location.reload();
+                }
+            }, "json");
+        });
+    </script>
+</body>
+</html>
